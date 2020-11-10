@@ -1,7 +1,9 @@
-from processing import overall
+from processing import overall, consensus, compiled_dir, drop_injured, drop_questionable, random_dropout
 from pulp import *
 import pandas as pd
+import random
 
+overall["PROJ. FPTS"] = overall["PROJ. FPTS"].astype(float)
 players = range(len(list(overall["PLAYER NAME"])))
 projections = list(overall["PROJ. FPTS"])
 salaries = list(overall["Salary"])
@@ -61,4 +63,25 @@ total_salary = result.sum(axis = 0)["Salary"]
 result.at[9, "PLAYER NAME"] = "Total"
 result.at[9, "PROJ. FPTS"] = total_projection
 result.at[9, "Salary"] = total_salary
-print(result)
+
+file_number = random.randint(10000, 99999)
+if consensus:
+    if drop_questionable:
+        if random_dropout == 0:
+            result.to_csv(compiled_dir+'lineup_consensus_noQues.csv', index = False, header=True)
+        else:
+            result.to_csv(compiled_dir+str(random_dropout)+'_'+str(file_number)+'_lineup_con_noQ.csv', index = False, header=True)
+    elif drop_injured:
+        if random_dropout == 0:
+            result.to_csv(compiled_dir+'lineup_consensus_noInj.csv', index = False, header=True)
+        else:
+            result.to_csv(compiled_dir+str(random_dropout)+'_'+str(file_number)+'_lineup_con_noI.csv', index = False, header=True)
+    else:
+        result.to_csv(compiled_dir+'lineup_consensus.csv', index = False, header=True)
+else:
+    if drop_questionable:
+        result.to_csv(compiled_dir+'lineup_noQues.csv', index = False, header=True)
+    elif drop_injured:
+        result.to_csv(compiled_dir+'lineup_noInj.csv', index = False, header=True)
+    else:
+        result.to_csv(compiled_dir+'lineup.csv', index = False, header=True)
