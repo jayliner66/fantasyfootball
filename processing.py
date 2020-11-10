@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import random
 
 year = '2020'
 week = '10'
@@ -71,4 +72,7 @@ for pos_pair in [(qb,'QB'),(rb,'RB'),(wr,'WR'),(te,'TE'),(dst, 'D')]:
     pos_pair[0].to_csv(compiled_dir+pos_pair[1]+'.csv', index = False, header=True)
 
 overall = pd.concat([qb, rb, wr, te, dst])
+overall.reset_index(drop = True, inplace = True)
+for i in range(overall.shape[0]):
+    overall.at[i, "PROJ. FPTS"] = overall.loc[i]["Salary"]*max(0.0015 + random.normalvariate(0, 0.0005), 0)
 overall.to_csv(compiled_dir+'OVERALL.csv', index = False, header=True)

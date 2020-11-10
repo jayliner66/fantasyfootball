@@ -1,40 +1,64 @@
-from processing import qb, rb, wr, te, dst
+from processing import overall
 from pulp import *
+import pandas as pd
 
-prob = LpProblem("Lineup Optimization",LpMaximize)
+players = range(len(list(overall["PLAYER NAME"])))
+projections = list(overall["PROJ. FPTS"])
+salaries = list(overall["Salary"])
 
-players = []
-players += list(qb["Nickname"])
-
-qb_dict = {}
-rb_dict = {}
-wr_dict = {}
-te_dict = {}
-flex_dict = {}
-dst_dict = {}
-
-player = [str(i) for i in range(data.shape[0])]
-point = {str(i): data['Points'][i] for i in range(data.shape[0])} 
-cost = {str(i): data['Cost'][i] for i in range(data.shape[0])}
-gk = {str(i): 1 if data['Position'][i] == 'GK' else 0 for i in range(data.shape[0])}
-defe = {str(i): 1 if data['Position'][i] == 'DEF' else 0 for i in range(data.shape[0])}
-mid = {str(i): 1 if data['Position'][i] == 'MID' else 0 for i in range(data.shape[0])}
-stri = {str(i): 1 if data['Position'][i] == 'STR' else 0 for i in range(data.shape[0])}
-xi = {str(i): 1 for i in range(data.shape[0])}
+qb_dict = {i: 1 if overall.loc[i]["Position"]=="QB" else 0 for i in range(len(players))}
+rb_dict = {i: 1 if overall.loc[i]["Position"]=="RB" else 0 for i in range(len(players))}
+wr_dict = {i: 1 if overall.loc[i]["Position"]=="WR" else 0 for i in range(len(players))}
+te_dict = {i: 1 if overall.loc[i]["Position"]=="TE" else 0 for i in range(len(players))}
+flex_dict = {i: 1 if overall.loc[i]["Position"] in ["RB", "WR", "TE"] else 0 for i in range(len(players))}
+dst_dict = {i: 1 if overall.loc[i]["Position"]=="DST" else 0 for i in range(len(players))}
 
 prob = LpProblem("Fantasy Football",LpMaximize)
-player_vars = LpVariable.dicts("Players",player,0,1,LpBinary)
+player_vars = LpVariable.dicts("Players",players,0,1,LpBinary)
 
 # objective function
-prob += lpSum([point[i]*player_vars[i] for i in player]), "Total Cost"
+prob += lpSum([projections[i]*player_vars[i] for i in players]), "Total Projection"
 
 # constraint
-prob += lpSum([player_vars[i] for i in player]) == 11, "Total 11 Players"
-prob += lpSum([cost[i] * player_vars[i] for i in player]) <= 100.0, "Total Cost"
-prob += lpSum([gk[i] * player_vars[i] for i in player]) == 1, "Only 1 GK"
-prob += lpSum([defe[i] * player_vars[i] for i in player]) <= 4, "Less than 4 DEF"
-prob += lpSum([mid[i] * player_vars[i] for i in player]) <= 5, "Less than 5 MID"
-prob += lpSum([stri[i] * player_vars[i] for i in player]) <= 3, "Less than 3 STR"
+prob += lpSum([salaries[i] * player_vars[i] for i in players]) <= 60000, "Total Salary"
+prob += lpSum([qb_dict[i] * player_vars[i] for i in players]) == 1, "Exactly 1 QB"
+prob += lpSum([rb_dict[i] * player_vars[i] for i in players]) >= 2, "At least 2 RBs"
+prob += lpSum([wr_dict[i] * player_vars[i] for i in players]) >= 3, "At least 3 WRs"
+prob += lpSum([te_dict[i] * player_vars[i] for i in players]) >= 1, "At least 1 TE"
+prob += lpSum([flex_dict[i] * player_vars[i] for i in players]) == 7, "Exactly 7 RB/WR/TEs"
+prob += lpSum([dst_dict[i] * player_vars[i] for i in players]) == 1, "Exactly 1 D/ST"
 
 # solve
-status = prob.solve()
+prob.solve()
+winning_players = {'QB': [], 'RB': [], 'WR': [], 'TE': [], 'DST': []}
+players_list = []
+
+for i in prob.variables():
+    if i.varValue == 1:
+        row = overall.loc[[int(str(i.name)[8:])]]
+        winning_players[row.iloc[0]["Position"]].append(row)
+
+winning_players['RB'].sort(key=lambda row : -row.iloc[0]["PROJ. FPTS"])
+winning_players['WR'].sort(key=lambda row : -row.iloc[0]["PROJ. FPTS"])
+winning_players['TE'].sort(key=lambda row : -row.iloc[0]["PROJ. FPTS"])
+
+players_list += winning_players['QB']
+players_list += winning_players['RB'][:2]
+players_list += winning_players['WR'][:3]
+players_list += winning_players['TE'][:1]
+if len(winning_players['RB'])==3:
+    players_list.append(winning_players['RB'][2])
+elif len(winning_players['WR'])==4:
+    players_list.append(winning_players['WR'][3])
+else:
+    players_list.append(winning_players['TE'][1])
+players_list += winning_players['DST']
+
+result = pd.concat(players_list)
+result.reset_index(drop = True, inplace = True)
+total_projection = result.sum(axis = 0)["PROJ. FPTS"]
+total_salary = result.sum(axis = 0)["Salary"]
+result.at[9, "PLAYER NAME"] = "Total"
+result.at[9, "PROJ. FPTS"] = total_projection
+result.at[9, "Salary"] = total_salary
+print(result)
