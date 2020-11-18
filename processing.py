@@ -3,11 +3,11 @@ import numpy as np
 import random
 
 year = '2020'
-week = '10'
+week = '11'
 consensus = True
-drop_injured = True
-drop_questionable = True
-random_dropout = 0.3
+drop_injured = False
+drop_questionable = False
+random_dropout = 0
 
 fanduel_file = "fanduel/"+year+"/FanDuel_"+year+"_Week_"+week+".csv"
 fantasypros_consensus_dir = "fantasypros_consensus/"+year+"/Week "+week+"/FantasyPros_Fantasy_Football_Projections_"
