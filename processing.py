@@ -3,11 +3,11 @@ import numpy as np
 import random
 
 year = '2020'
-week = '11'
+week = '12'
 consensus = True
-drop_injured = False
-drop_questionable = False
-random_dropout = 0
+drop_injured = True
+drop_questionable = True
+random_dropout = 0.3
 
 fanduel_file = "fanduel/"+year+"/FanDuel_"+year+"_Week_"+week+".csv"
 fantasypros_consensus_dir = "fantasypros_consensus/"+year+"/Week "+week+"/FantasyPros_Fantasy_Football_Projections_"
@@ -15,7 +15,7 @@ fantasypros_dir = "fantasypros/"+year+"/Week "+week+"/FantasyPros_"+year+"_Week_
 compiled_dir = "compiled_data/"+year+"/Week "+week+"/"
 fantasypros_categories = ['PLAYER NAME', 'TEAM', 'PROJ. FPTS']
 fanduel_categories = ['Salary', 'Injury Indicator']
-abnormal_teams = ['BAL', 'IND', 'TEN', 'NE', 'CHI', 'MIN']
+abnormal_teams = ['CHI','GB','HOU','DET','WAS','DAL']
 bye_teams = []
 
 if consensus:
@@ -64,7 +64,7 @@ fantasypros_to_fanduel = aliases.set_index("FantasyPros name").T.to_dict()
 # print(fantasypros_to_fanduel)
 fanduel_data = pd.read_csv(fanduel_file)
 
-# Use to determine aliases needed
+# # Use to determine aliases needed
 # for pos_pair in [(qb,'QB'),(rb,'RB'),(wr,'WR'),(te,'TE'),(dst, 'D')]:
 #     fanduel_pos_data = fanduel_data.loc[fanduel_data['Position'] == pos_pair[1]]
 #     for index, row in pos_pair[0].iterrows():
