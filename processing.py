@@ -3,11 +3,11 @@ import numpy as np
 import random
 
 year = '2020'
-week = '12'
+week = '13'
 consensus = True
 drop_injured = True
 drop_questionable = True
-random_dropout = 0.3
+random_dropout = 0
 
 fanduel_file = "fanduel/"+year+"/FanDuel_"+year+"_Week_"+week+".csv"
 fantasypros_consensus_dir = "fantasypros_consensus/"+year+"/Week "+week+"/FantasyPros_Fantasy_Football_Projections_"
@@ -15,7 +15,7 @@ fantasypros_dir = "fantasypros/"+year+"/Week "+week+"/FantasyPros_"+year+"_Week_
 compiled_dir = "compiled_data/"+year+"/Week "+week+"/"
 fantasypros_categories = ['PLAYER NAME', 'TEAM', 'PROJ. FPTS']
 fanduel_categories = ['Salary', 'Injury Indicator']
-abnormal_teams = ['CHI','GB','HOU','DET','WAS','DAL']
+abnormal_teams = ['DEN','KC','WAS','PIT','BUF','SF','DAL','BAL']
 bye_teams = []
 
 if consensus:
